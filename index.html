@@ -2,27 +2,28 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Thuỳ Linh</title>
   <style>
-    body {
+    html, body {
       margin: 0;
-      background: black;
+      padding: 0;
       overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+      -webkit-overflow-scrolling: none;
+      overscroll-behavior: none;
+    }
+
+    body {
+      background: black;
       font-family: 'Arial', sans-serif;
       perspective: 1000px;
       perspective-origin: center center;
       transform-style: preserve-3d;
       transition: transform 0.1s ease-out;
-      position: fixed;
-      width: 100%;
-      height: 100%;
-    }
-
-    html {
-      overflow: hidden;
-      position: fixed;
-      width: 100%;
-      height: 100%;
     }
 
     .container {
@@ -61,7 +62,7 @@
     .message {
       position: absolute;
       color: #ffffff;
-      font-size: 35px;
+      font-size: clamp(20px, 5vw, 35px);
       text-shadow: 0 0 10px #ff9999, 0 0 20px #ff666b;
       white-space: nowrap;
       animation: fallText linear infinite;
@@ -82,7 +83,7 @@
       bottom: 10px;
       right: 10px;
       color: rgba(255, 255, 255, 0.078);
-      font-size: 12px;
+      font-size: clamp(8px, 2vw, 12px);
       font-family: 'Arial', sans-serif;
       z-index: 1000;
       pointer-events: none;
@@ -130,12 +131,34 @@
         opacity: 0;
       }
     }
+
+    /* Media Queries */
+    @media screen and (max-width: 768px) {
+      .container {
+        transform: rotateY(10deg);
+      }
+      
+      .message {
+        font-size: clamp(16px, 4vw, 25px);
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .container {
+        transform: rotateY(5deg);
+      }
+      
+      .message {
+        font-size: clamp(14px, 3.5vw, 20px);
+      }
+    }
   </style>
 </head>
 <body>
 
-<audio autoplay loop>
+<audio id="bgMusic" loop>
   <source src="music.mp3" type="audio/mpeg">
+  Your browser does not support the audio element.
 </audio>
 
 <div class="stars-container">
@@ -187,11 +210,44 @@
     layer.appendChild(msg);
   }
 
-  // Khởi tạo số lượng dòng chữ ban đầu cho mỗi lớp
+  // Thêm code xử lý audio
+  const bgMusic = document.getElementById('bgMusic');
+  
+  // Hàm để bắt đầu phát nhạc
+  function playMusic() {
+    bgMusic.play().catch(function(error) {
+      console.log("Audio playback failed:", error);
+    });
+  }
+
+  // Thêm sự kiện click để bắt đầu phát nhạc
+  document.addEventListener('click', function() {
+    playMusic();
+  }, { once: true });
+
+  // Thêm sự kiện touch để bắt đầu phát nhạc trên mobile
+  document.addEventListener('touchstart', function() {
+    playMusic();
+  }, { once: true });
+
+  // Điều chỉnh số lượng phần tử dựa trên kích thước màn hình
+  function getElementCount(layerDepth) {
+    const screenWidth = window.innerWidth;
+    let baseCount = 15 + (Math.abs(layerDepth) / 200);
+    
+    if (screenWidth <= 480) {
+      baseCount = Math.floor(baseCount * 0.5);
+    } else if (screenWidth <= 768) {
+      baseCount = Math.floor(baseCount * 0.7);
+    }
+    
+    return Math.floor(baseCount);
+  }
+
+  // Cập nhật hàm createMessage để sử dụng getElementCount
   layers.forEach(layer => {
     const layerDepth = parseInt(layer.style.transform.match(/translateZ\(([-\d]+)px\)/)[1]);
-    // Lớp càng xa thì càng nhiều phần tử
-    const elementCount = Math.floor(15 + (Math.abs(layerDepth) / 200));
+    const elementCount = getElementCount(layerDepth);
     for (let i = 0; i < elementCount; i++) {
       createMessage(layer);
     }
@@ -319,14 +375,32 @@
     layer.appendChild(heart);
   }
 
-  // Khởi tạo số lượng trái tim ban đầu cho mỗi lớp
+  // Cập nhật hàm createHeart để sử dụng getElementCount
   layers.forEach(layer => {
     const layerDepth = parseInt(layer.style.transform.match(/translateZ\(([-\d]+)px\)/)[1]);
-    // Lớp càng xa thì càng nhiều phần tử
-    const elementCount = Math.floor(15 + (Math.abs(layerDepth) / 200));
+    const elementCount = getElementCount(layerDepth);
     for (let i = 0; i < elementCount; i++) {
       createHeart(layer);
     }
+  });
+
+  // Thêm code để ngăn chặn scroll
+  document.addEventListener('touchmove', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('wheel', function(e) {
+    e.preventDefault();
+  }, { passive: false });
+
+  // Ngăn chặn scroll khi kéo thả
+  document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+  });
+
+  // Ngăn chặn scroll khi double tap trên mobile
+  document.addEventListener('dblclick', function(e) {
+    e.preventDefault();
   });
 </script>
 
